@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted, watch } from 'vue'
   import { db } from './data/guitars'
   import Guitar from './components/Guitar.vue'
   import Header from './components/Header.vue'
@@ -7,10 +7,29 @@
 
   const guitars = ref([])
   const cart = ref([])
+  const guitar = ref({})
+
+  watch(
+    cart,
+    () => {
+      saveCartOnLocalStorage()
+    },
+    { deep: true }
+  )
 
   onMounted(() => {
     guitars.value = db
+    guitar.value = db[3]
+
+    const cartLocalStorage = localStorage.getItem('cart')
+    if (cartLocalStorage) {
+      cart.value = JSON.parse(cartLocalStorage)
+    }
   })
+
+  const saveCartOnLocalStorage = () => {
+    localStorage.setItem('cart', JSON.stringify(cart.value))
+  }
 
   const addToCart = (guitar) => {
     const itemExists = cart.value.findIndex(item => item.id === guitar.id)
@@ -38,13 +57,25 @@
       cart.value[itemExists].quantity++
     }
   }
+
+  const removeItem = (id) => {
+    cart.value = cart.value.filter(item => item.id !== id)
+  }
+
+  const emptyCart = () => {
+    cart.value = []
+  }
 </script>
 
 <template>
   <Header 
     :cart="cart"
+    :guitar="guitar"
     @increase-quantity="increaseQuantity"
     @decrease-quantity="decreaseQuantity"
+    @add-cart="addToCart"
+    @remove-item="removeItem"
+    @empty-cart="emptyCart"
   />
 
   <main class="container-xl mt-5">
