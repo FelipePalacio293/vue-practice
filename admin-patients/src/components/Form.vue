@@ -1,22 +1,43 @@
 <script setup>
-  import { ref, reactive } from 'vue'
+  import { computed, reactive } from 'vue'
   import Alert from './Alert.vue'
-
-  const patient = reactive({
-    name: '',
-    owner: '',
-    email: '',
-    dischargeDate: '',
-    symptoms: ''
-  })
 
   const alert = reactive({
     message: '',
     type: ''
   })
 
+  const emit = defineEmits(['update:name', 'update:owner', 'update:email', 'update:discharge-date', 'update:symptoms', 'save-patient'])
+
+  const props = defineProps({
+    id: {
+      type: [String, null],
+      required: true
+    },
+    name: {
+      type: String,
+      required: true
+    },
+    owner: {
+      type: String,
+      required: true
+    },
+    email: {
+      type: String,
+      required: true
+    },
+    dischargeDate: {
+      type: String,
+      required: true
+    },
+    symptoms: {
+      type: String,
+      required: true
+    }
+  })
+
   const validateForm = () => {
-    if (Object.values(patient).some(value => value === '')) {
+    if (Object.values(props).some(value => value === '')) {
       alert.message = 'Todos los campos son obligatorios'
       alert.type = 'error'
       return
@@ -24,12 +45,26 @@
 
     alert.message = 'Paciente registrado correctamente'
     alert.type = 'success'
+
+    setTimeout(() => {
+      Object.assign(alert, {
+        message: '',
+        type: ''
+      })
+    }, 3000)
+
+    emit('save-patient')
   }
+
+  const editing = computed(() => {
+    return props.id
+  })
 </script>
 
 <template>
   <div class="md:w-1/2">
     <h2 class="font-black text-3xl text-center">Seguimiento pacientes</h2>
+
     <p class="text-lg mt-5 text-center mb-10">
       Agrega pacientes y
       <span class="text-indigo-600 font-bold">Administralos</span>
@@ -56,7 +91,8 @@
           type="text"
           placeholder="Nombre mascota"
           class="w-full mt-2 p-2 border-2 placeholder-gray-400 rounded-md"
-          v-model="patient.name"
+          :value="name"
+          @input="$emit('update:name', $event.target.value)"
         />
       </div>
 
@@ -72,7 +108,8 @@
           type="text"
           placeholder="Nombre dueño"
           class="w-full mt-2 p-2 border-2 placeholder-gray-400 rounded-md"
-          v-model="patient.owner"
+          :value="owner"
+          @input="$emit('update:owner', $event.target.value)"
         />
       </div>
 
@@ -87,8 +124,9 @@
           id="email"
           type="email"
           placeholder="Email dueño"
-          class="w-full mt-2 p-2 border-2 placeholder-gray-400 rounded-md"
-          v-model="patient.email"
+          class="w-full mt-2 p-2 border-2 placeholder-gray-400 rounded-md"  
+          :value="email"
+          @input="$emit('update:email', $event.target.value)"
         />
       </div>
 
@@ -104,7 +142,8 @@
           type="date"
           placeholder="Fecha de alta"
           class="w-full mt-2 p-2 border-2 placeholder-gray-400 rounded-md"
-          v-model="patient.dischargeDate"
+          :value="dischargeDate"
+          @input="$emit('update:discharge-date', $event.target.value)"
         />
       </div>
 
@@ -119,13 +158,14 @@
           id="symptoms"
           placeholder="Describa los sintomas"
           class="w-full mt-2 p-2 border-2 placeholder-gray-400 h-40 rounded-md"
-          v-model="patient.symptoms"
+          :value="symptoms"
+          @input="$emit('update:symptoms', $event.target.value)"
         />
       </div>
 
       <input
         type="submit"
-        value="Registrar paciente"
+        :value="[editing ? 'Guardar cambios' : 'Registrar paciente']"
         class="bg-indigo-600 w-full p-2 text-white uppercase font-bold rounded-md hover:bg-indigo-700 cursor-pointer transition-colors"
       />
     </form>
